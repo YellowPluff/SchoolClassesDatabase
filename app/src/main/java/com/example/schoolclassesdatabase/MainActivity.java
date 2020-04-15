@@ -4,18 +4,19 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
     private LinearLayout scrollViewLayout;
+
+    //Used for onTouchListener()
+    private float startX;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,14 +39,34 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<String> allClasses = dbm.getAllClasses();
         for(String classObj : allClasses) {
             TextView temp = makeTextView(classObj);
-            temp.setOnClickListener(new View.OnClickListener() {
+            temp.setOnTouchListener(new View.OnTouchListener() {
                 @Override
-                public void onClick(View v) {
-                    Intent i = new Intent(getApplicationContext(), ViewClassInformationActivity.class);
-                    i.putExtra("CLASSNAME", ((TextView) v).getText().toString());
-                    startActivity(i);
+                public boolean onTouch(View v, MotionEvent event) {
+                    int action = event.getAction();
+                    switch(action) {
+                        case MotionEvent.ACTION_DOWN:
+                            startX = event.getX();
+                            break;
+                        case MotionEvent.ACTION_UP:
+                            if(event.getX() < startX) {
+                                //They moved their finger to the left
+                                Intent i = new Intent(getApplicationContext(), ViewClassInformationActivity.class);
+                                i.putExtra("CLASSNAME", ((TextView) v).getText().toString());
+                                startActivity(i);
+                            }
+                            break;
+                    }
+                    return true;
                 }
             });
+//            temp.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    Intent i = new Intent(getApplicationContext(), ViewClassInformationActivity.class);
+//                    i.putExtra("CLASSNAME", ((TextView) v).getText().toString());
+//                    startActivity(i);
+//                }
+//            });
             scrollViewLayout.addView(temp);
         }
     }
@@ -61,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
     public void addClassButtonClicked(View view) {
         Intent i = new Intent(this, AddClassActivity.class);
         startActivity(i);
+        overridePendingTransition(R.anim.slide_from_right, R.anim.slide_to_left);
     }
 
     public void searchProfessorButtonClicked(View view) {
